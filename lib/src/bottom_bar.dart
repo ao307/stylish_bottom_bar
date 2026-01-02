@@ -201,6 +201,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
           }
         });
     });
+
     _animations =
         List<CurvedAnimation>.generate(widget.items.length, (int index) {
       return CurvedAnimation(
@@ -232,8 +233,11 @@ class _StylishBottomBarState extends State<StylishBottomBar>
     super.dispose();
   }
 
-  double _evaluateFlex(Animation<double> animation) =>
-      _flexTween!.evaluate(animation);
+  double _evaluateFlex(Animation<double> animation) {
+    // Safety fallback if didChangeDependencies hasn't run yet (rare)
+    final tween = _flexTween ?? Tween<double>(begin: 1.15, end: 1.75);
+    return tween.evaluate(animation);
+  }
 
   @override
   void didUpdateWidget(StylishBottomBar oldWidget) {
@@ -285,51 +289,53 @@ class _StylishBottomBarState extends State<StylishBottomBar>
         : widget.notchStyle == NotchStyle.square;
   }
 
-
   @override
   Widget build(BuildContext context) {
-    double additionalBottomPadding = 0;
-
     final mediaQuery = MediaQuery.of(context);
+
+    // ✅ IMPORTANT FIX:
+    // - No `late` local listWidget
+    // - No `late` local options that could be read before initialization
+    // We compute listWidget + padding + barAnimation together with guaranteed defaults.
+
+    double additionalBottomPadding =
+        math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
+
     List<Widget> listWidget = _animatedBarChilds();
-    late BottomBarOption options;
+    BarAnimation? barAnimation;
 
-    switch (widget.option) {
-      case AnimatedBarOptions _:
-        options = widget.option as AnimatedBarOptions;
-        additionalBottomPadding =
-            math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
-        listWidget = _animatedBarChilds();
-        break;
-
-      case BubbleBarOptions _:
-        options = widget.option as BubbleBarOptions;
-        additionalBottomPadding =
-            math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
-        listWidget = _bubbleBarTiles();
-        break;
-
-      case DotBarOptions _:
-        options = widget.option as DotBarOptions;
-        additionalBottomPadding =
-            math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
-        listWidget = _dotBarChilds();
-        break;
-
-      default:
-        // Fallback to AnimatedBarOptions behavior if type is unrecognized
-        options = widget.option;
-        additionalBottomPadding =
-            math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
-        listWidget = _animatedBarChilds();
-        break;
+    if (widget.option is AnimatedBarOptions) {
+      final o = widget.option as AnimatedBarOptions;
+      additionalBottomPadding =
+          math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
+      listWidget = _animatedBarChilds();
+      barAnimation = o.barAnimation;
+    } else if (widget.option is BubbleBarOptions) {
+      additionalBottomPadding =
+          math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
+      listWidget = _bubbleBarTiles();
+      barAnimation = null;
+    } else if (widget.option is DotBarOptions) {
+      additionalBottomPadding =
+          math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
+      listWidget = _dotBarChilds();
+      barAnimation = null;
+    } else {
+      // Fallback
+      additionalBottomPadding =
+          math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
+      listWidget = _animatedBarChilds();
+      barAnimation = null;
     }
 
     bool isUsingMaterial3 = getStyle();
 
+    // Safety: if hasNotch is true but geometry isn't available yet, fallback to non-notch
+    final geometry = _geometryListenable;
+
     return Semantics(
       explicitChildNodes: true,
-      child: widget.hasNotch
+      child: widget.hasNotch && geometry != null
           ? PhysicalShape(
               elevation: widget.elevation,
               color: widget.backgroundColor ?? Colors.white,
@@ -344,7 +350,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
                         ),
                       )
                     : const CircularNotchedRectangle(),
-                geometry: _geometryListenable!,
+                geometry: geometry,
                 notchMargin: isUsingMaterial3 ? 6 : 8,
               ),
               child: ClipPath(
@@ -359,7 +365,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
                           ),
                         )
                       : const CircularNotchedRectangle(),
-                  geometry: _geometryListenable!,
+                  geometry: geometry,
                   notchMargin: isUsingMaterial3 ? 6 : 8,
                 ),
                 child: Container(
@@ -373,7 +379,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
                     additionalBottomPadding,
                     widget.fabLocation,
                     listWidget,
-                    options is AnimatedBarOptions ? options.barAnimation : null,
+                    barAnimation,
                   ),
                 ),
               ),
@@ -388,13 +394,12 @@ class _StylishBottomBarState extends State<StylishBottomBar>
                   color: widget.backgroundColor ?? Colors.white,
                 ),
                 child: _innerWidget(
-                    context,
-                    additionalBottomPadding + 2,
-                    widget.fabLocation,
-                    listWidget,
-                    options is AnimatedBarOptions
-                        ? options.barAnimation
-                        : null),
+                  context,
+                  additionalBottomPadding + 2,
+                  widget.fabLocation,
+                  listWidget,
+                  barAnimation,
+                ),
               ),
             ),
     );
@@ -469,22 +474,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
       }),
     );
 
-    // if (widget.fabLocation == StylishBarFabLocation.center && list.length > 2) {
-    //   list.insert(
-    //     2,
-    //     list.length > 3
-    //         ? const Flex(
-    //             direction: Axis.horizontal,
-    //             children: [Padding(padding: EdgeInsets.all(12))],
-    //           )
-    //         : const Spacer(
-    //             flex: 2,
-    //           ),
-    //   );
-    // }
-
     insertSpace(list);
-
     return list;
   }
 
