@@ -295,7 +295,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
     late BottomBarOption options;
     late List<Widget> listWidget;
 
-    switch (widget.option.runtimeType) {
+    switch (widget.option) {
       case AnimatedBarOptions _:
         options = widget.option as AnimatedBarOptions;
         additionalBottomPadding =
