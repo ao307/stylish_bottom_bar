@@ -72,6 +72,7 @@ class DotNavigationTiles extends StatelessWidget {
   Color get itemColor =>
       item.backgroundColor ??
       (selected ? item.selectedColor : item.unSelectedColor);
+
   Color get itemColorOnSelected => item.backgroundColor ?? item.selectedColor;
 
   Widget get iconChild => selected ? item.selectedIcon ?? item.icon : item.icon;

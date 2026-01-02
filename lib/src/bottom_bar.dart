@@ -56,7 +56,7 @@ import 'utils/constant.dart';
 ///
 ///```
 class StylishBottomBar extends StatefulWidget {
-  StylishBottomBar({
+  const StylishBottomBar({
     super.key,
     required this.items,
     this.backgroundColor,
@@ -70,7 +70,7 @@ class StylishBottomBar extends StatefulWidget {
     this.gradient,
     this.iconSpace = 1.5,
     this.notchStyle = NotchStyle.themeDefault,
-  })  : assert(items.length >= 2,
+  }) : assert(items.length >= 2,
             '\n\nStylish Bottom Navigation must have 2 or more items');
 
   ///Add navigation bar items
@@ -172,7 +172,8 @@ class _StylishBottomBarState extends State<StylishBottomBar>
 
   /// Helper method to check if the current index is valid
   bool _isIndexValid() {
-    return widget.currentIndex >= 0 && widget.currentIndex < widget.items.length;
+    return widget.currentIndex >= 0 &&
+        widget.currentIndex < widget.items.length;
   }
 
   @override
@@ -245,7 +246,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
 
     // Helper to check if old index was valid
     bool oldIndexValid = oldWidget.currentIndex >= 0 &&
-                         oldWidget.currentIndex < oldWidget.items.length;
+        oldWidget.currentIndex < oldWidget.items.length;
     bool newIndexValid = _isIndexValid();
 
     if (widget.currentIndex != oldWidget.currentIndex) {
@@ -271,7 +272,8 @@ class _StylishBottomBarState extends State<StylishBottomBar>
     } else {
       // Only update background color if current index is valid
       if (newIndexValid &&
-          _backgroundColor != widget.items[widget.currentIndex].backgroundColor) {
+          _backgroundColor !=
+              widget.items[widget.currentIndex].backgroundColor) {
         _backgroundColor = widget.items[widget.currentIndex].backgroundColor;
       }
     }
@@ -293,21 +295,21 @@ class _StylishBottomBarState extends State<StylishBottomBar>
     late BottomBarOption options;
 
     switch (widget.option.runtimeType) {
-      case AnimatedBarOptions:
+      case AnimatedBarOptions _:
         options = widget.option as AnimatedBarOptions;
         additionalBottomPadding =
             math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
         listWidget = _animatedBarChilds();
         break;
 
-      case BubbleBarOptions:
+      case BubbleBarOptions _:
         options = widget.option as BubbleBarOptions;
         additionalBottomPadding =
             math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
         listWidget = _bubbleBarTiles();
         break;
 
-      case DotBarOptions:
+      case DotBarOptions _:
         options = widget.option as DotBarOptions;
         additionalBottomPadding =
             math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
@@ -521,9 +523,9 @@ class _StylishBottomBarState extends State<StylishBottomBar>
   }
 
   Widget _innerWidget(
-    context,
+    BuildContext context,
     double additionalBottomPadding,
-    fabLocation,
+    StylishBarFabLocation? fabLocation,
     List<Widget> childs, [
     BarAnimation? barAnimation,
   ]) {
