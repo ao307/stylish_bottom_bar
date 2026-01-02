@@ -221,6 +221,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
   void initState() {
     super.initState();
     _state();
+    listWidget = [];
   }
 
   @override
@@ -284,11 +285,11 @@ class _StylishBottomBarState extends State<StylishBottomBar>
         ? Theme.of(context).useMaterial3
         : widget.notchStyle == NotchStyle.square;
   }
-
+  late List<Widget> listWidget;
   @override
   Widget build(BuildContext context) {
     double additionalBottomPadding = 0;
-    late List<Widget> listWidget;
+
 
     final mediaQuery = MediaQuery.of(context);
 
