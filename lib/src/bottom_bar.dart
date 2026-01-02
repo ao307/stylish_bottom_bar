@@ -71,15 +71,7 @@ class StylishBottomBar extends StatefulWidget {
     this.iconSpace = 1.5,
     this.notchStyle = NotchStyle.themeDefault,
   })  : assert(items.length >= 2,
-            '\n\nStylish Bottom Navigation must have 2 or more items'),
-        assert(
-          items.every((BottomBarItem item) => item.title != null) == true,
-          '\n\nEvery item must have a non-null title',
-        ),
-        assert((currentIndex >= items.length) == false,
-            '\n\nCurrent index is out of bond. Provided: $currentIndex  Bond: 0 to ${items.length - 1}'),
-        assert((currentIndex < 0) == false,
-            '\n\nCurrent index is out of bond. Provided: $currentIndex  Bond: 0 to ${items.length - 1}');
+            '\n\nStylish Bottom Navigation must have 2 or more items');
 
   ///Add navigation bar items
   ///[BottomBarItem]
@@ -178,6 +170,11 @@ class _StylishBottomBarState extends State<StylishBottomBar>
   ValueListenable<ScaffoldGeometry>? _geometryListenable;
   Animatable<double>? _flexTween;
 
+  /// Helper method to check if the current index is valid
+  bool _isIndexValid() {
+    return widget.currentIndex >= 0 && widget.currentIndex < widget.items.length;
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -211,8 +208,12 @@ class _StylishBottomBarState extends State<StylishBottomBar>
         reverseCurve: Curves.fastOutSlowIn.flipped,
       );
     });
-    _controllers[widget.currentIndex].value = 1.0;
-    _backgroundColor = widget.items[widget.currentIndex].backgroundColor;
+
+    // Only set controller value and background color if index is valid
+    if (_isIndexValid()) {
+      _controllers[widget.currentIndex].value = 1.0;
+      _backgroundColor = widget.items[widget.currentIndex].backgroundColor;
+    }
   }
 
   @override
@@ -242,24 +243,35 @@ class _StylishBottomBarState extends State<StylishBottomBar>
       return;
     }
 
+    // Helper to check if old index was valid
+    bool oldIndexValid = oldWidget.currentIndex >= 0 &&
+                         oldWidget.currentIndex < oldWidget.items.length;
+    bool newIndexValid = _isIndexValid();
+
     if (widget.currentIndex != oldWidget.currentIndex) {
-      _controllers[oldWidget.currentIndex].reverse();
-      _controllers[widget.currentIndex].forward();
+      // Reverse old controller only if old index was valid
+      if (oldIndexValid) {
+        _controllers[oldWidget.currentIndex].reverse();
+      }
+
+      // Forward new controller only if new index is valid
+      if (newIndexValid) {
+        _controllers[widget.currentIndex].forward();
+      }
 
       if (widget.fabLocation == StylishBarFabLocation.center) {
-        // dynamic _currentItem = widget.items[oldWidget.currentIndex!];
-        // dynamic _nextItem = widget.items[widget.currentIndex!]!;
-
-        // widget.items[0] = _nextItem;
-        // widget.items[widget.currentIndex!] = _currentItem;
-        _controllers[oldWidget.currentIndex].reverse();
-        _controllers[widget.currentIndex].forward();
-        // widget.currentIndex = 0;
+        if (oldIndexValid) {
+          _controllers[oldWidget.currentIndex].reverse();
+        }
+        if (newIndexValid) {
+          _controllers[widget.currentIndex].forward();
+        }
         _state();
       }
     } else {
-      if (_backgroundColor !=
-          widget.items[widget.currentIndex].backgroundColor) {
+      // Only update background color if current index is valid
+      if (newIndexValid &&
+          _backgroundColor != widget.items[widget.currentIndex].backgroundColor) {
         _backgroundColor = widget.items[widget.currentIndex].backgroundColor;
       }
     }
@@ -395,7 +407,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
         onTap: () {
           if (widget.onTap != null) widget.onTap!(i);
         },
-        selected: i == widget.currentIndex,
+        selected: _isIndexValid() && i == widget.currentIndex,
         flex: _evaluateFlex(_animations[i]),
         indexLabel: localizations.tabLabel(
             tabIndex: i + 1, tabCount: widget.items.length),
@@ -432,7 +444,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
           padding: options.padding,
           inkEffect: options.inkEffect,
           inkColor: options.inkColor,
-          selected: widget.currentIndex == i,
+          selected: _isIndexValid() && widget.currentIndex == i,
           opacity: options.opacity!,
           animation: _animations[i],
           barAnimation: options.barAnimation,
@@ -491,7 +503,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
       List.generate(widget.items.length, (i) {
         return DotNavigationTiles(
           widget.items[i],
-          selected: widget.currentIndex == i,
+          selected: _isIndexValid() && widget.currentIndex == i,
           animation: _animations[i],
           options: options,
           onTap: () {

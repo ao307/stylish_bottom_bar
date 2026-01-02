@@ -81,54 +81,75 @@ class DotNavigationTiles extends StatelessWidget {
       animation: animation!,
       item: item,
     );
-    return [
+
+    final List<Widget> items = [
       Badge(
         label: item.badge,
         isLabelVisible: item.showBadge,
         backgroundColor: item.badgeColor,
         padding: item.badgePadding,
         alignment: const Alignment(0.175, -1.0),
-        child: AnimatedCrossFade(
-          firstChild: Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: label,
-          ),
-          secondChild: Container(
-            alignment: Alignment.center,
-            child: IconTheme(
-              data: IconThemeData(
-                color: itemColor,
-                size: options.iconSize,
+        child: item.title != null
+            ? AnimatedCrossFade(
+                firstChild: Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child: label,
+                ),
+                secondChild: Container(
+                  alignment: Alignment.center,
+                  child: IconTheme(
+                    data: IconThemeData(
+                      color: itemColor,
+                      size: options.iconSize,
+                    ),
+                    child: iconChild,
+                  ),
+                ),
+                duration: const Duration(milliseconds: 600),
+                sizeCurve: Curves.fastOutSlowIn,
+                firstCurve: Curves.fastOutSlowIn,
+                secondCurve: Curves.fastOutSlowIn.flipped,
+                crossFadeState: selected
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+              )
+            : Container(
+                alignment: Alignment.center,
+                child: IconTheme(
+                  data: IconThemeData(
+                    color: itemColor,
+                    size: options.iconSize,
+                  ),
+                  child: iconChild,
+                ),
               ),
-              child: iconChild,
+      ),
+    ];
+
+    // Only add dot indicator if showDot is true
+    if (options.showDot) {
+      items.add(
+        AnimatedCrossFade(
+          firstChild: const SizedBox(),
+          secondChild: Container(
+            height: 8,
+            width: options.dotStyle == DotStyle.circle ? 8 : 16,
+            decoration: BoxDecoration(
+              color: itemColorOnSelected,
+              borderRadius: BorderRadius.circular(4),
+              gradient: options.gradient,
             ),
           ),
-          duration: const Duration(milliseconds: 600),
-          sizeCurve: Curves.fastOutSlowIn,
+          duration: const Duration(milliseconds: 300),
+          sizeCurve: Curves.linear,
           firstCurve: Curves.fastOutSlowIn,
           secondCurve: Curves.fastOutSlowIn.flipped,
           crossFadeState:
-              selected ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+              selected ? CrossFadeState.showSecond : CrossFadeState.showFirst,
         ),
-      ),
-      AnimatedCrossFade(
-        firstChild: const SizedBox(),
-        secondChild: Container(
-          height: 8,
-          width: options.dotStyle == DotStyle.circle ? 8 : 16,
-          decoration: BoxDecoration(
-            color: itemColorOnSelected,
-            borderRadius: BorderRadius.circular(4),
-            gradient: options.gradient,
-          ),
-        ),
-        duration: const Duration(milliseconds: 300),
-        sizeCurve: Curves.linear,
-        firstCurve: Curves.fastOutSlowIn,
-        secondCurve: Curves.fastOutSlowIn.flipped,
-        crossFadeState:
-            selected ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-      ),
-    ];
+      );
+    }
+
+    return items;
   }
 }

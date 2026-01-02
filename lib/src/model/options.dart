@@ -143,6 +143,11 @@ class DotBarOptions extends BottomBarOption {
   /// If not specified, the item's `selectedColor` will be used as the default color.
   final Gradient? gradient;
 
+  /// Specifies whether to show the dot indicator when an item is selected.
+  /// When set to `false`, the dot indicator will not be displayed and no space will be reserved for it.
+  /// The default value is `true`.
+  final bool showDot;
+
   DotBarOptions({
     this.iconSize = 26.0,
     this.padding,
@@ -150,5 +155,6 @@ class DotBarOptions extends BottomBarOption {
     this.inkColor = Colors.grey,
     this.dotStyle = DotStyle.circle,
     this.gradient,
+    this.showDot = true,
   });
 }

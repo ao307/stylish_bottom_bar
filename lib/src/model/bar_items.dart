@@ -5,7 +5,7 @@ class BottomBarItem {
   /// Creates an instance of [BottomBarItem].
   ///
   /// * [icon] is required and represents the item's icon.
-  /// * [title] represents the item's title.
+  /// * [title] is an optional widget that represents the item's title.
   /// * [selectedIcon] is an optional widget to display when the item is selected.
   /// * [backgroundColor] sets the item's background color.
   /// * [unSelectedColor] sets the color of the icon and text when the item is not selected. Defaults to [Colors.grey].
@@ -17,7 +17,7 @@ class BottomBarItem {
   /// * [borderColor] sets the color of the border around the item. Defaults to [Colors.black].
   BottomBarItem({
     required this.icon,
-    required this.title,
+    this.title,
     this.selectedIcon,
     this.backgroundColor,
     this.unSelectedColor = Colors.grey,

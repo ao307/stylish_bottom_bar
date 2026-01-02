@@ -14,6 +14,11 @@ class LabelWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Return empty widget if title is null
+    if (item.title == null) {
+      return const SizedBox.shrink();
+    }
+
     return Align(
       alignment: Alignment.center,
       heightFactor: 1.0,
