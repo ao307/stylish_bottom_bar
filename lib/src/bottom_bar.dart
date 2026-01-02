@@ -70,7 +70,7 @@ class StylishBottomBar extends StatefulWidget {
     this.gradient,
     this.iconSpace = 1.5,
     this.notchStyle = NotchStyle.themeDefault,
-  })  : assert(items.length >= 2,
+  }) : assert(items.length >= 2,
             '\n\nStylish Bottom Navigation must have 2 or more items');
 
   ///Add navigation bar items
@@ -172,7 +172,8 @@ class _StylishBottomBarState extends State<StylishBottomBar>
 
   /// Helper method to check if the current index is valid
   bool _isIndexValid() {
-    return widget.currentIndex >= 0 && widget.currentIndex < widget.items.length;
+    return widget.currentIndex >= 0 &&
+        widget.currentIndex < widget.items.length;
   }
 
   @override
@@ -245,7 +246,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
 
     // Helper to check if old index was valid
     bool oldIndexValid = oldWidget.currentIndex >= 0 &&
-                         oldWidget.currentIndex < oldWidget.items.length;
+        oldWidget.currentIndex < oldWidget.items.length;
     bool newIndexValid = _isIndexValid();
 
     if (widget.currentIndex != oldWidget.currentIndex) {
@@ -271,7 +272,8 @@ class _StylishBottomBarState extends State<StylishBottomBar>
     } else {
       // Only update background color if current index is valid
       if (newIndexValid &&
-          _backgroundColor != widget.items[widget.currentIndex].backgroundColor) {
+          _backgroundColor !=
+              widget.items[widget.currentIndex].backgroundColor) {
         _backgroundColor = widget.items[widget.currentIndex].backgroundColor;
       }
     }
@@ -286,33 +288,47 @@ class _StylishBottomBarState extends State<StylishBottomBar>
   @override
   Widget build(BuildContext context) {
     double additionalBottomPadding = 0;
-    late List<Widget> listWidget;
 
     final mediaQuery = MediaQuery.of(context);
 
-    late BottomBarOption options;
+    // ✅ Not late -> always initialized
+    List<Widget> listWidget = const <Widget>[];
 
-    switch (widget.option.runtimeType) {
-      case AnimatedBarOptions:
-        options = widget.option as AnimatedBarOptions;
-        additionalBottomPadding =
-            math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
-        listWidget = _animatedBarChilds();
-        break;
+    // ✅ barAnimation computed safely (no "late options" needed)
+    BarAnimation? barAnimation;
 
-      case BubbleBarOptions:
-        options = widget.option as BubbleBarOptions;
-        additionalBottomPadding =
-            math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
-        listWidget = _bubbleBarTiles();
-        break;
+    // ✅ Don't switch on runtimeType; use `is` checks + fallback
+    if (widget.option is AnimatedBarOptions) {
+      final AnimatedBarOptions options = widget.option as AnimatedBarOptions;
 
-      case DotBarOptions:
-        options = widget.option as DotBarOptions;
-        additionalBottomPadding =
-            math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
-        listWidget = _dotBarChilds();
-        break;
+      additionalBottomPadding =
+          math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
+
+      listWidget = _animatedBarChilds();
+      barAnimation = options.barAnimation;
+    } else if (widget.option is BubbleBarOptions) {
+      // final BubbleBarOptions options = widget.option as BubbleBarOptions;
+
+      additionalBottomPadding =
+          math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
+
+      listWidget = _bubbleBarTiles();
+      barAnimation = null;
+    } else if (widget.option is DotBarOptions) {
+      // final DotBarOptions options = widget.option as DotBarOptions;
+
+      additionalBottomPadding =
+          math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
+
+      listWidget = _dotBarChilds();
+      barAnimation = null;
+    } else {
+      // ✅ Fallback so listWidget is ALWAYS assigned
+      additionalBottomPadding =
+          math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
+
+      listWidget = _animatedBarChilds();
+      barAnimation = null;
     }
 
     bool isUsingMaterial3 = getStyle();
@@ -363,7 +379,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
                     additionalBottomPadding,
                     widget.fabLocation,
                     listWidget,
-                    options is AnimatedBarOptions ? options.barAnimation : null,
+                    barAnimation,
                   ),
                 ),
               ),
@@ -378,13 +394,12 @@ class _StylishBottomBarState extends State<StylishBottomBar>
                   color: widget.backgroundColor ?? Colors.white,
                 ),
                 child: _innerWidget(
-                    context,
-                    additionalBottomPadding + 2,
-                    widget.fabLocation,
-                    listWidget,
-                    options is AnimatedBarOptions
-                        ? options.barAnimation
-                        : null),
+                  context,
+                  additionalBottomPadding + 2,
+                  widget.fabLocation,
+                  listWidget,
+                  barAnimation,
+                ),
               ),
             ),
     );
