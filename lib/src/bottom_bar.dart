@@ -56,7 +56,7 @@ import 'utils/constant.dart';
 ///
 ///```
 class StylishBottomBar extends StatefulWidget {
-  StylishBottomBar({
+  const StylishBottomBar({
     super.key,
     required this.items,
     this.backgroundColor,
@@ -163,12 +163,13 @@ class StylishBottomBar extends StatefulWidget {
 
 class _StylishBottomBarState extends State<StylishBottomBar>
     with TickerProviderStateMixin {
-  late List<AnimationController> _controllers = <AnimationController>[];
+  List<AnimationController> _controllers = <AnimationController>[];
   late List<CurvedAnimation> _animations;
   Color? _backgroundColor;
 
   ValueListenable<ScaffoldGeometry>? _geometryListenable;
   Animatable<double>? _flexTween;
+  bool? _previousHasNotch;
 
   /// Helper method to check if the current index is valid
   bool _isIndexValid() {
@@ -180,9 +181,14 @@ class _StylishBottomBarState extends State<StylishBottomBar>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _geometryListenable = Scaffold.geometryOf(context);
-    _flexTween = widget.hasNotch
-        ? Tween<double>(begin: 1.15, end: 2.0)
-        : Tween<double>(begin: 1.15, end: 1.75);
+
+    // Only create new Tween if hasNotch changed
+    if (_previousHasNotch != widget.hasNotch) {
+      _flexTween = widget.hasNotch
+          ? Tween<double>(begin: 1.15, end: 2.0)
+          : Tween<double>(begin: 1.15, end: 1.75);
+      _previousHasNotch = widget.hasNotch;
+    }
   }
 
   void _state() {
@@ -196,7 +202,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
         duration: const Duration(milliseconds: 200),
         vsync: this,
       )..addListener(() {
-          if (widget.option.runtimeType == BubbleBarOptions) {
+          if (widget.option is BubbleBarOptions) {
             setState(() {});
           }
         });
@@ -536,9 +542,9 @@ class _StylishBottomBarState extends State<StylishBottomBar>
   }
 
   Widget _innerWidget(
-    context,
+    BuildContext context,
     double additionalBottomPadding,
-    fabLocation,
+    StylishBarFabLocation? fabLocation,
     List<Widget> childs, [
     BarAnimation? barAnimation,
   ]) {
@@ -553,10 +559,9 @@ class _StylishBottomBarState extends State<StylishBottomBar>
           type: MaterialType.transparency,
           child: Padding(
             padding: EdgeInsets.only(
-                bottom:
-                    barAnimation != null && barAnimation == BarAnimation.liquid
-                        ? 0
-                        : additionalBottomPadding,
+                bottom: barAnimation == BarAnimation.liquid
+                    ? 0
+                    : additionalBottomPadding,
                 right: fabLocation == StylishBarFabLocation.end ? 72 : 0),
             child: MediaQuery.removePadding(
               context: context,
