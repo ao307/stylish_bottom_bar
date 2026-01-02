@@ -99,7 +99,6 @@ class AnimatedNavigationTiles extends StatelessWidget {
   Color get itemColor =>
       items.backgroundColor ??
       (selected ? items.selectedColor : items.unSelectedColor);
-
   Color get itemColorOnSelected => items.backgroundColor ?? items.selectedColor;
 
   List<Widget> _defaultItems() {
@@ -398,7 +397,7 @@ class _IconWidgetState extends State<IconWidget>
     super.dispose();
   }
 
-  void _assignAnimation() {
+  _assignAnimation() {
     if (widget.barAnimation != BarAnimation.transform3D) {
       if (widget.barAnimation == BarAnimation.blink) {
         animation =
@@ -417,7 +416,7 @@ class _IconWidgetState extends State<IconWidget>
     }
   }
 
-  void _playAnimation() {
+  _playAnimation() {
     if (widget.barAnimation != BarAnimation.transform3D) {
       widget.selected ? controller?.forward() : controller?.reset();
     }
@@ -432,7 +431,7 @@ class _IconWidgetState extends State<IconWidget>
     return _buildWidget();
   }
 
-  Widget _buildWidget() {
+  _buildWidget() {
     return IconTheme(
       data: IconThemeData(
         color: widget.item.backgroundColor ??

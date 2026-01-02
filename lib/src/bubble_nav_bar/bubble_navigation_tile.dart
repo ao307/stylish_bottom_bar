@@ -35,7 +35,6 @@ class BubbleNavigationTile extends StatelessWidget {
   final double opacity;
   final bool ink;
   final Color? inkColor;
-
   // final Color? unselectedIconColor;
   final EdgeInsets padding;
   final BubbleBarStyle? barStyle;

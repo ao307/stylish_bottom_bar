@@ -56,7 +56,7 @@ import 'utils/constant.dart';
 ///
 ///```
 class StylishBottomBar extends StatefulWidget {
-  const StylishBottomBar({
+  StylishBottomBar({
     super.key,
     required this.items,
     this.backgroundColor,
@@ -70,7 +70,7 @@ class StylishBottomBar extends StatefulWidget {
     this.gradient,
     this.iconSpace = 1.5,
     this.notchStyle = NotchStyle.themeDefault,
-  }) : assert(items.length >= 2,
+  })  : assert(items.length >= 2,
             '\n\nStylish Bottom Navigation must have 2 or more items');
 
   ///Add navigation bar items
@@ -172,8 +172,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
 
   /// Helper method to check if the current index is valid
   bool _isIndexValid() {
-    return widget.currentIndex >= 0 &&
-        widget.currentIndex < widget.items.length;
+    return widget.currentIndex >= 0 && widget.currentIndex < widget.items.length;
   }
 
   @override
@@ -201,7 +200,6 @@ class _StylishBottomBarState extends State<StylishBottomBar>
           }
         });
     });
-
     _animations =
         List<CurvedAnimation>.generate(widget.items.length, (int index) {
       return CurvedAnimation(
@@ -233,11 +231,8 @@ class _StylishBottomBarState extends State<StylishBottomBar>
     super.dispose();
   }
 
-  double _evaluateFlex(Animation<double> animation) {
-    // Safety fallback if didChangeDependencies hasn't run yet (rare)
-    final tween = _flexTween ?? Tween<double>(begin: 1.15, end: 1.75);
-    return tween.evaluate(animation);
-  }
+  double _evaluateFlex(Animation<double> animation) =>
+      _flexTween!.evaluate(animation);
 
   @override
   void didUpdateWidget(StylishBottomBar oldWidget) {
@@ -250,7 +245,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
 
     // Helper to check if old index was valid
     bool oldIndexValid = oldWidget.currentIndex >= 0 &&
-        oldWidget.currentIndex < oldWidget.items.length;
+                         oldWidget.currentIndex < oldWidget.items.length;
     bool newIndexValid = _isIndexValid();
 
     if (widget.currentIndex != oldWidget.currentIndex) {
@@ -276,8 +271,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
     } else {
       // Only update background color if current index is valid
       if (newIndexValid &&
-          _backgroundColor !=
-              widget.items[widget.currentIndex].backgroundColor) {
+          _backgroundColor != widget.items[widget.currentIndex].backgroundColor) {
         _backgroundColor = widget.items[widget.currentIndex].backgroundColor;
       }
     }
@@ -291,51 +285,41 @@ class _StylishBottomBarState extends State<StylishBottomBar>
 
   @override
   Widget build(BuildContext context) {
+    double additionalBottomPadding = 0;
+    late List<Widget> listWidget;
+
     final mediaQuery = MediaQuery.of(context);
 
-    // ✅ IMPORTANT FIX:
-    // - No `late` local listWidget
-    // - No `late` local options that could be read before initialization
-    // We compute listWidget + padding + barAnimation together with guaranteed defaults.
+    late BottomBarOption options;
 
-    double additionalBottomPadding =
-        math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
+    switch (widget.option.runtimeType) {
+      case AnimatedBarOptions:
+        options = widget.option as AnimatedBarOptions;
+        additionalBottomPadding =
+            math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
+        listWidget = _animatedBarChilds();
+        break;
 
-    List<Widget> listWidget = _animatedBarChilds();
-    BarAnimation? barAnimation;
+      case BubbleBarOptions:
+        options = widget.option as BubbleBarOptions;
+        additionalBottomPadding =
+            math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
+        listWidget = _bubbleBarTiles();
+        break;
 
-    if (widget.option is AnimatedBarOptions) {
-      final o = widget.option as AnimatedBarOptions;
-      additionalBottomPadding =
-          math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
-      listWidget = _animatedBarChilds();
-      barAnimation = o.barAnimation;
-    } else if (widget.option is BubbleBarOptions) {
-      additionalBottomPadding =
-          math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
-      listWidget = _bubbleBarTiles();
-      barAnimation = null;
-    } else if (widget.option is DotBarOptions) {
-      additionalBottomPadding =
-          math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
-      listWidget = _dotBarChilds();
-      barAnimation = null;
-    } else {
-      // Fallback
-      additionalBottomPadding =
-          math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
-      listWidget = _animatedBarChilds();
-      barAnimation = null;
+      case DotBarOptions:
+        options = widget.option as DotBarOptions;
+        additionalBottomPadding =
+            math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
+        listWidget = _dotBarChilds();
+        break;
     }
 
     bool isUsingMaterial3 = getStyle();
 
-    // Safety: if hasNotch is true but geometry isn't available yet, fallback to non-notch
-    final geometry = _geometryListenable;
-
     return Semantics(
       explicitChildNodes: true,
-      child: widget.hasNotch && geometry != null
+      child: widget.hasNotch
           ? PhysicalShape(
               elevation: widget.elevation,
               color: widget.backgroundColor ?? Colors.white,
@@ -350,7 +334,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
                         ),
                       )
                     : const CircularNotchedRectangle(),
-                geometry: geometry,
+                geometry: _geometryListenable!,
                 notchMargin: isUsingMaterial3 ? 6 : 8,
               ),
               child: ClipPath(
@@ -365,7 +349,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
                           ),
                         )
                       : const CircularNotchedRectangle(),
-                  geometry: geometry,
+                  geometry: _geometryListenable!,
                   notchMargin: isUsingMaterial3 ? 6 : 8,
                 ),
                 child: Container(
@@ -379,7 +363,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
                     additionalBottomPadding,
                     widget.fabLocation,
                     listWidget,
-                    barAnimation,
+                    options is AnimatedBarOptions ? options.barAnimation : null,
                   ),
                 ),
               ),
@@ -394,12 +378,13 @@ class _StylishBottomBarState extends State<StylishBottomBar>
                   color: widget.backgroundColor ?? Colors.white,
                 ),
                 child: _innerWidget(
-                  context,
-                  additionalBottomPadding + 2,
-                  widget.fabLocation,
-                  listWidget,
-                  barAnimation,
-                ),
+                    context,
+                    additionalBottomPadding + 2,
+                    widget.fabLocation,
+                    listWidget,
+                    options is AnimatedBarOptions
+                        ? options.barAnimation
+                        : null),
               ),
             ),
     );
@@ -474,7 +459,22 @@ class _StylishBottomBarState extends State<StylishBottomBar>
       }),
     );
 
+    // if (widget.fabLocation == StylishBarFabLocation.center && list.length > 2) {
+    //   list.insert(
+    //     2,
+    //     list.length > 3
+    //         ? const Flex(
+    //             direction: Axis.horizontal,
+    //             children: [Padding(padding: EdgeInsets.all(12))],
+    //           )
+    //         : const Spacer(
+    //             flex: 2,
+    //           ),
+    //   );
+    // }
+
     insertSpace(list);
+
     return list;
   }
 
@@ -521,9 +521,9 @@ class _StylishBottomBarState extends State<StylishBottomBar>
   }
 
   Widget _innerWidget(
-    BuildContext context,
+    context,
     double additionalBottomPadding,
-    StylishBarFabLocation? fabLocation,
+    fabLocation,
     List<Widget> childs, [
     BarAnimation? barAnimation,
   ]) {
