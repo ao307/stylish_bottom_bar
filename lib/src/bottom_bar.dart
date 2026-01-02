@@ -316,6 +316,14 @@ class _StylishBottomBarState extends State<StylishBottomBar>
             math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 4;
         listWidget = _dotBarChilds();
         break;
+
+      default:
+        // Fallback to AnimatedBarOptions behavior if type is unrecognized
+        options = widget.option;
+        additionalBottomPadding =
+            math.max(mediaQuery.padding.bottom - bottomMargin, 0.0) + 2;
+        listWidget = _animatedBarChilds();
+        break;
     }
 
     bool isUsingMaterial3 = getStyle();
