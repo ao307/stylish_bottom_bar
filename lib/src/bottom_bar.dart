@@ -285,6 +285,8 @@ class _StylishBottomBarState extends State<StylishBottomBar>
         : widget.notchStyle == NotchStyle.square;
   }
 
+   List<Widget> listWidget = [];
+
   @override
   Widget build(BuildContext context) {
     double additionalBottomPadding = 0;
@@ -293,7 +295,6 @@ class _StylishBottomBarState extends State<StylishBottomBar>
     final mediaQuery = MediaQuery.of(context);
 
     late BottomBarOption options;
-    late List<Widget> listWidget;
 
     switch (widget.option) {
       case AnimatedBarOptions _:
