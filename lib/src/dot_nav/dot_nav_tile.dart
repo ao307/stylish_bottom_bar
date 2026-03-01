@@ -77,6 +77,7 @@ class DotNavigationTiles extends StatelessWidget {
   Widget get iconChild => selected ? item.selectedIcon ?? item.icon : item.icon;
 
   List<Widget> _dotItems() {
+    if (animation == null) return const [];
     final label = LabelWidget(
       animation: animation!,
       item: item,

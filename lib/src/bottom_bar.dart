@@ -239,7 +239,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
   }
 
   double _evaluateFlex(Animation<double> animation) =>
-      _flexTween!.evaluate(animation);
+      (_flexTween ?? Tween<double>(begin: 1.15, end: 1.75)).evaluate(animation);
 
   @override
   void didUpdateWidget(StylishBottomBar oldWidget) {
@@ -341,7 +341,7 @@ class _StylishBottomBarState extends State<StylishBottomBar>
 
     return Semantics(
       explicitChildNodes: true,
-      child: widget.hasNotch
+      child: widget.hasNotch && _geometryListenable != null
           ? PhysicalShape(
               elevation: widget.elevation,
               color: widget.backgroundColor ?? Colors.white,
